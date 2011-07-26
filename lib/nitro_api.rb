@@ -19,22 +19,23 @@ module NitroApi
     CRITERIA_MAX = "MAX";
     CRITERIA_CREDITS = "credits";
     POINT_CATEGORY_ALL = "all";
-    TAGS_OPERATOR_OR = "OR";   
-    
+    TAGS_OPERATOR_OR = "OR";
+
     def initialize (user_id, api_key, secret)
       # Required Parameters
       @secret = secret
       @api_key = api_key
       @user = user_id
     end
-    
+
     #  Method for constructing a signature
     def sign
       time = Time.now.gmtime.to_i.to_s
       unencrypted_signature = @api_key + @secret + time + @user.to_s
-      return Digest::MD5.hexdigest(unencrypted_signature + unencrypted_signature.length.to_s)
+      to_digest = unencrypted_signature + unencrypted_signature.length.to_s
+      return Digest::MD5.hexdigest(to_digest)
     end
-	
+
     def login
       params = {
         :sig => sign,
@@ -54,7 +55,7 @@ module NitroApi
         @session =  response["Login"]["sessionKey"]
       end
     end
-    
+
     def log_action(actions, value=nil)
       params = {
         :tags => actions.is_a?(Array) ? actions.join(",") : actions,
@@ -71,7 +72,7 @@ module NitroApi
       error = response["Error"]
       if error
         raise NitroError.new(error["Code"]), error["Message"]
-      end     
+      end
     end
 
     private
