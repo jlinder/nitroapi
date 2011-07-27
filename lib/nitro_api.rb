@@ -15,11 +15,7 @@ module NitroApi
   end
 
   class NitroApi
-    # Constants
-    CRITERIA_MAX = "MAX";
-    CRITERIA_CREDITS = "credits";
-    POINT_CATEGORY_ALL = "all";
-    TAGS_OPERATOR_OR = "OR";
+    attr_accessor :session
 
     def initialize (user_id, api_key, secret)
       # Required Parameters
@@ -30,7 +26,7 @@ module NitroApi
 
     #  Method for constructing a signature
     def sign
-      time = Time.now.gmtime.to_i.to_s
+      time = Time.now.utc.to_i.to_s
       unencrypted_signature = @api_key + @secret + time + @user.to_s
       to_digest = unencrypted_signature + unencrypted_signature.length.to_s
       return Digest::MD5.hexdigest(to_digest)
@@ -39,21 +35,13 @@ module NitroApi
     def login
       params = {
         :sig => sign,
-        :ts => Time.now.gmtime.to_i.to_s,
+        :ts => Time.now.utc.to_i.to_s,
         :apiKey => @api_key,
         :userId => @user,
         :method => 'user.login'
       }
-      request = HOST + ACCEPT + to_query(params)
-      data = Net::HTTP.get_response(URI.parse(request)).body
-      json = JSON.parse(data)
-      response = json["Nitro"]
-      error = response["Error"]
-      if error
-        raise NitroError.new(error["Code"]), error["Message"]
-      else
-        @session =  response["Login"]["sessionKey"]
-      end
+      response = make_call(params)
+      @session =  response["Login"]["sessionKey"]
     end
 
     def log_action(actions, value=nil)
@@ -64,18 +52,23 @@ module NitroApi
         :method => 'user.logAction'
       }
       params['value'] = value.to_s if value && !value.to_s.empty?
+      make_call(params)
+    end
+
+    private
+
+    def make_call(params)
       request = HOST + ACCEPT + to_query(params)
-      p request
-      data = Net::HTTP.get_response(URI.parse(request)).body
+      data = Net::HTTP.get(URI.parse(request))
       json = JSON.parse(data)
       response = json["Nitro"]
       error = response["Error"]
       if error
         raise NitroError.new(error["Code"]), error["Message"]
+      else
+        response
       end
     end
-
-    private
 
     def to_query params
       params.map {|k,v| "#{k.to_s}=#{v.to_s}"}.join("&")
