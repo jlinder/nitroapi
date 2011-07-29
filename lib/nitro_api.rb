@@ -44,14 +44,16 @@ module NitroApi
       @session =  response["Login"]["sessionKey"]
     end
 
-    def log_action(actions, value=nil)
+    def log_action(actions, opts={})
+      value = opts.delete(:value)
+      user_id = opts.delete(:other_user)
       params = {
         :tags => actions.is_a?(Array) ? actions.join(",") : actions,
         :sessionKey => @session,
-        :userId => @user,
         :method => 'user.logAction'
       }
-      params['value'] = value.to_s if value && !value.to_s.empty?
+      params[:value] = value.to_s if value && !value.to_s.empty?
+      params[:userId] = user_id if user_id && !user_id.to_s.empty
       make_call(params)
     end
 
