@@ -57,6 +57,16 @@ module NitroApi
       make_call(params)
     end
 
+    def challenge_progress(challenge=nil, opts={})
+      params = {
+        :sessionKey => @session,
+        :method => 'user.getChallengeProgress'
+      }
+      params['challengeName'] = challenge if challenge and !challenge.to_s.empty?
+      params['showOnlyTrophies'] = opts.delete(:trophies_only) || false
+      response = make_call(params)
+      response['challenges']['Challenge']
+    end
     private
 
     def make_call(params)

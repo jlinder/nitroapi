@@ -8,3 +8,4 @@ nitro = NitroApi::NitroApi.new 1, settings['key'], settings['secret']
 
 nitro.login
 nitro.log_action "Video_Watch"
+nitro.challenge_progress

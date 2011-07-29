@@ -57,7 +57,6 @@ describe NitroApi do
           "method" => "user.logAction"
         }
         url = NitroApi::HOST + "?.*method=user.logAction.*"
-        mock_json = {"Nitro" => {"res" => "ok"}}
         stub_http_request(:get, Regexp.new(url)).
           with(:query => params).
           to_return(:body => @success)
@@ -66,5 +65,22 @@ describe NitroApi do
       end
     end
 
+    describe "#challenge_progress" do
+      it "returns the challenge part of the response" do
+        params = {
+          "showOnlyTrophies" => "false",
+          "sessionKey" => @session,
+          "method" => "user.getChallengeProgress"
+        }
+        url = NitroApi::HOST + "?.*method=user.getChallengeProgress.*"
+        mock_data = "challenge"
+        mock_json = {"Nitro" => {"challenges" => {"Challenge" => mock_data}}}
+        stub_http_request(:get, Regexp.new(url)).
+          with(:query => params).
+          to_return(:body => mock_json.to_json)
+
+        @nitro.challenge_progress.should == mock_data
+      end
+    end
   end
 end
