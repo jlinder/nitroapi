@@ -41,7 +41,7 @@ module NitroApi
         :method => 'user.login'
       }
       response = make_call(params)
-      @session =  response["Login"]["sessionKey"]
+      @session = response["Login"]["sessionKey"]
     end
 
     def log_action(actions, opts={})
@@ -67,6 +67,17 @@ module NitroApi
       response = make_call(params)
       response['challenges']['Challenge']
     end
+
+    def award_challenge(challenge)
+      params = {
+        :sessionKey => @session,
+        :userId => @user,
+        :method => 'user.awardChallenge',
+        :challenge => challenge
+      }
+      make_call(params)
+    end
+
     private
 
     def make_call(params)
@@ -83,7 +94,7 @@ module NitroApi
     end
 
     def to_query params
-      params.map {|k,v| "#{k.to_s}=#{v.to_s}"}.join("&")
+      URI.escape(params.map { |k,v| "#{k.to_s}=#{v.to_s}" }.join("&"))
     end
   end
 end

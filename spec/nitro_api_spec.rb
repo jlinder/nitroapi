@@ -82,5 +82,22 @@ describe NitroApi do
         @nitro.challenge_progress.should == mock_data
       end
     end
+
+    describe "#award challenge" do
+      it "returns the challenge part of the response" do
+        params = {
+          "userId" => @user,
+          "sessionKey" => @session,
+          "challenge" => "TestChallenge",
+          "method" => "user.awardChallenge"
+        }
+        url = NitroApi::HOST + "?.*method=user.awardChallenge.*"
+        stub_http_request(:get, Regexp.new(url)).
+          with(:query => params).
+          to_return(:body => @success)
+
+        @nitro.award_challenge "TestChallenge"
+      end
+    end
   end
 end
