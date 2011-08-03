@@ -100,7 +100,7 @@ module NitroApi
       params = {
         :sessionKey => @session,
         :method => 'user.joinGroup',
-        :group => group
+        :groupName => group
       }
       make_call(params)
     end
