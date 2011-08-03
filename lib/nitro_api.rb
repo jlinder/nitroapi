@@ -78,6 +78,33 @@ module NitroApi
       make_call(params)
     end
 
+    def action_history actions
+      params = {
+        :sessionKey => @session,
+        :method => 'user.getActionHistory'
+      }
+      if actions && !actions.empty?
+        params[:tags] = actions.is_a?(Array) ? actions.join(",") : actions
+      end
+      response = make_call(params)
+      response['ActionHistoryRecord']['ActionHistoryItem'].inject([]) do
+        |history, item|
+        history<< {:tags => item['tags'],
+          :ts => Time.at(item['ts'].to_i),
+          :value => item['value'].to_i
+        }
+      end
+    end
+
+    def join_group group
+      params = {
+        :sessionKey => @session,
+        :method => 'user.joinGroup',
+        :group => group
+      }
+      make_call(params)
+    end
+
     private
 
     def make_call(params)
