@@ -78,7 +78,7 @@ module NitroApi
       make_call(params)
     end
 
-    def action_history actions
+    def action_history actions=[]
       params = {
         :sessionKey => @session,
         :method => 'user.getActionHistory'
@@ -87,12 +87,16 @@ module NitroApi
         params[:tags] = actions.is_a?(Array) ? actions.join(",") : actions
       end
       response = make_call(params)
-      response['ActionHistoryRecord']['ActionHistoryItem'].inject([]) do
-        |history, item|
-        history<< {:tags => item['tags'],
-          :ts => Time.at(item['ts'].to_i),
-          :value => item['value'].to_i
-        }
+      if response['ActionHistoryRecord']
+        response['ActionHistoryRecord']['ActionHistoryItem'].inject([]) do
+          |history, item|
+          history<< {:tags => item['tags'],
+            :ts => Time.at(item['ts'].to_i),
+            :value => item['value'].to_i
+          }
+        end
+      else
+        []
       end
     end
 

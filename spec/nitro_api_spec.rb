@@ -99,5 +99,65 @@ describe NitroApi do
         @nitro.award_challenge "TestChallenge"
       end
     end
+
+    describe "#action_history" do
+      before do
+        @now = Time.now
+        @mock_history =
+         [
+          {'ts' => @now.to_i, 'tags' => 'action0', 'value' => '0'},
+          {'ts' => @now.to_i, 'tage' => 'action1', 'value' => '1'}
+         ]
+        @mock_json = {"Nitro" =>
+          {"ActionHistoryRecord" =>
+            {"ActionHistoryItem" => @mock_history}}}.to_json
+      end
+
+      it "returns an array of log entries with date & value for all actions" do
+        params = {
+          "sessionKey" => @session,
+          "method" => "user.getActionHistory"
+        }
+        url = NitroApi::HOST + "?.*method=user.getActionHistory.*"
+        stub_http_request(:get, Regexp.new(url)).
+          with(:query => params).
+          to_return(:body => @mock_json)
+
+        history = @nitro.action_history
+        history.count.should == 2
+        history[0][:tags].should == 'action0'
+        history[0][:ts].to_i.should == @now.to_i
+        history[1][:value].should == 1
+      end
+
+      it "can ask for history for a specific action list" do
+        params = {
+          "sessionKey" => @session,
+          "method" => "user.getActionHistory",
+          "tags" => "action1"
+        }
+        url = NitroApi::HOST + "?.*method=user.getActionHistory.*"
+        stub_http_request(:get, Regexp.new(url)).
+          with(:query => params).
+          to_return(:body => @mock_json)
+
+        @nitro.action_history 'action1'
+      end
+    end
+
+    describe "#join_group name_of_group" do
+      it "sends that user joined a group" do
+        params = {"groupName" => "group",
+          "sessionKey" => @session,
+          "method" => "user.joinGroup"
+        }
+        url = NitroApi::HOST + "?.*method=user.joinGroup.*"
+        stub_http_request(:get, Regexp.new(url)).
+          with(:query => params).
+          to_return(:body => @success)
+
+        @nitro.join_group "group"
+      end      
+    end
   end
 end
