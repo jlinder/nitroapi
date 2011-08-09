@@ -1,6 +1,7 @@
 require 'json'
 require 'digest/md5'
 require 'net/http'
+require 'nitro_api/challenge'
 
 module NitroApi
   HOST = "http://sandbox.bunchball.net/nitro/"
@@ -57,15 +58,31 @@ module NitroApi
       make_call(params)
     end
 
-    def challenge_progress(challenge=nil, opts={})
+    def challenge_progress(opts={})
       params = {
         :sessionKey => @session,
         :method => 'user.getChallengeProgress'
       }
+      challenge = opts[:challenge]
       params['challengeName'] = challenge if challenge and !challenge.to_s.empty?
       params['showOnlyTrophies'] = opts.delete(:trophies_only) || false
+      params['folder'] = opts.delete(:folder) if opts.has_key?(:folder)
+
       response = make_call(params)
-      response['challenges']['Challenge']
+
+      if response['challenges']
+        response['challenges']['Challenge'].inject({}) do |challenges, item|
+          challenge = Challenge.new
+          challenge.name = item["name"]
+          challenge.description = item["description"]
+          challenge.full_url = item["fullUrl"]
+          challenge.thumb_url = item["thumbUrl"]
+          challenge.completed = item["completionCount"].to_i
+
+          challenges[challenge.name] = challenge
+          challenges
+        end
+      end
     end
 
     def award_challenge(challenge)

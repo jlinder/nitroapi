@@ -73,13 +73,21 @@ describe NitroApi do
           "method" => "user.getChallengeProgress"
         }
         url = NitroApi::HOST + "?.*method=user.getChallengeProgress.*"
-        mock_data = "challenge"
+        mock_data = [{"completionCount"=>"1",
+          "description" => "some description",
+          "name" => "Watch 10 Videos"}]
+
         mock_json = {"Nitro" => {"challenges" => {"Challenge" => mock_data}}}
         stub_http_request(:get, Regexp.new(url)).
           with(:query => params).
           to_return(:body => mock_json.to_json)
 
-        @nitro.challenge_progress.should == mock_data
+        progress = @nitro.challenge_progress
+        progress.should_not be_empty
+        challenge = progress["Watch 10 Videos"]
+        challenge.should_not be_nil
+        challenge.description.should == "some description"
+        challenge.completed.should == 1
       end
     end
 
