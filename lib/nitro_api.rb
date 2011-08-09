@@ -71,7 +71,7 @@ module NitroApi
       response = make_call(params)
 
       if response['challenges']
-        response['challenges']['Challenge'].inject({}) do |challenges, item|
+        response['challenges']['Challenge'].inject([]) do |challenges, item|
           challenge = Challenge.new
           challenge.name = item["name"]
           challenge.description = item["description"]
@@ -79,8 +79,7 @@ module NitroApi
           challenge.thumb_url = item["thumbUrl"]
           challenge.completed = item["completionCount"].to_i
 
-          challenges[challenge.name] = challenge
-          challenges
+          challenges<< challenge
         end
       end
     end

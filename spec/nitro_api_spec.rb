@@ -84,7 +84,7 @@ describe NitroApi do
 
         progress = @nitro.challenge_progress
         progress.should_not be_empty
-        challenge = progress["Watch 10 Videos"]
+        challenge = progress[0]
         challenge.should_not be_nil
         challenge.description.should == "some description"
         challenge.completed.should == 1
