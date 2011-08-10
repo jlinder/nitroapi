@@ -70,7 +70,7 @@ module NitroApi
 
       response = make_call(params)
 
-      if response['challenges'] && valid_response?(response['challenges'])
+      if valid_response?(response['challenges'])
         items = ensure_array(response['challenges']['Challenge'])
         items.reduce([]) do |challenges, item|
           challenge = Challenge.new
@@ -104,7 +104,7 @@ module NitroApi
         params[:tags] = actions.is_a?(Array) ? actions.join(",") : actions
       end
       response = make_call(params)
-      if response['ActionHistoryRecord']
+      if valid_response?(response['ActionHistoryRecord'])
         items = ensure_array(response['ActionHistoryRecord']['ActionHistoryItem'])
         items.reduce([]) do
           |history, item|
