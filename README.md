@@ -31,7 +31,7 @@ nitro.log_action "Video_Watch"
 
 ```ruby
 nitro.action_history "Video_Watch"
-nitro.challenge_progress "Watch 10 Videos"
+nitro.challenge_progress :challenge => "Watch 10 Videos"
 ```
 
 Installing
