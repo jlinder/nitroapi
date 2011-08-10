@@ -10,4 +10,5 @@ nitro.login
 nitro.log_action "Video_Watch"
 nitro.challenge_progress
 
+
 puts nitro.action_history "Video_Watch"
