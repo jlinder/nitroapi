@@ -70,7 +70,7 @@ module NitroApi
 
       response = make_call(params)
 
-      if response['challenges']
+      if response['challenges'] && valid_response?(response['challenges'])
         items = ensure_array(response['challenges']['Challenge'])
         items.reduce([]) do |challenges, item|
           challenge = Challenge.new
@@ -128,6 +128,10 @@ module NitroApi
     end
 
     private
+
+    def valid_response?(obj)
+      obj.is_a?(Array) || obj.is_a?(Hash)
+    end
 
     def ensure_array(items)
       items.is_a?(Array) ? items : [items]
