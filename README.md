@@ -41,6 +41,14 @@ add to your Gemfile
 gem 'nitroapi', :git => 'git://github.com/KeasInc/nitroapi.git'
 ```
 
+Change Log
+----------
+0.0.5
+
+#### Bug fixes:
+
+* handle empty responses for challenge_progress and action_history
+
 License
 -------
 
