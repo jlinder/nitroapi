@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{nitroapi}
-  s.version = "0.0.3"
+  s.version = "0.0.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Gilad Buchman"]
-  s.date = %q{2011-08-09}
+  s.date = %q{2011-08-10}
   s.description = %q{Api client for Bunchball's Nitro. http://www.bunchball.com/nitro/}
   s.extra_rdoc_files = [
     "LICENSE.txt",
