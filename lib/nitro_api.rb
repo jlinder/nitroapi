@@ -71,7 +71,8 @@ module NitroApi
       response = make_call(params)
 
       if response['challenges']
-        response['challenges']['Challenge'].inject([]) do |challenges, item|
+        items = ensure_array(response['challenges']['Challenge'])
+        items.reduce([]) do |challenges, item|
           challenge = Challenge.new
           challenge.name = item["name"]
           challenge.description = item["description"]
@@ -104,7 +105,8 @@ module NitroApi
       end
       response = make_call(params)
       if response['ActionHistoryRecord']
-        response['ActionHistoryRecord']['ActionHistoryItem'].inject([]) do
+        items = ensure_array(response['ActionHistoryRecord']['ActionHistoryItem'])
+        items.reduce([]) do
           |history, item|
           history<< {:tags => item['tags'],
             :ts => Time.at(item['ts'].to_i),
@@ -126,6 +128,10 @@ module NitroApi
     end
 
     private
+
+    def ensure_array(items)
+      items.is_a?(Array) ? items : [items]
+    end
 
     def make_call(params)
       request = HOST + ACCEPT + to_query(params)
