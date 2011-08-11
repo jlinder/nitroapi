@@ -36,11 +36,13 @@ nitro.challenge_progress :challenge => "Watch 10 Videos"
 
 Installing
 ----------
-add to your Gemfile
+ 1) add to your Gemfile
 
 ```
 gem 'nitroapi'
 ```
+
+ 2) Create a keys.json file with your api_key and secret (see keys.json.example file)
 
 Change Log
 ----------
