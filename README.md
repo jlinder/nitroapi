@@ -37,8 +37,9 @@ nitro.challenge_progress :challenge => "Watch 10 Videos"
 Installing
 ----------
 add to your Gemfile
+
 ```
-gem 'nitroapi', :git => 'git://github.com/KeasInc/nitroapi.git'
+gem 'nitroapi'
 ```
 
 Change Log
