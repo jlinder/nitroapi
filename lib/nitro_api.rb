@@ -2,6 +2,7 @@ require 'json'
 require 'digest/md5'
 require 'net/http'
 require 'nitro_api/challenge'
+require 'nitro_api/rule'
 
 module NitroApi
   HOST = "http://sandbox.bunchball.net/nitro/"
@@ -80,6 +81,18 @@ module NitroApi
           challenge.thumb_url = item["thumbUrl"]
           challenge.completed = item["completionCount"].to_i
 
+          if valid_response?(item["rules"])
+            ensure_array(item["rules"]['Rule']).each do |rule_elm|
+              rule = Rule.new
+              rule.action = rule_elm['actionTag']
+              rule.type = rule_elm['type'].to_sym
+              rule.completed = rule_elm['type'] == 'true'
+              if rule_elm['goal'] && !rule_elm['goal'].empty?
+                rule.goal = rule_elm['goal'].to_i
+              end
+              challenge.rules<< rule
+            end
+          end
           challenges<< challenge
         end
       end

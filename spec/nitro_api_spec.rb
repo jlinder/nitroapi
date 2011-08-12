@@ -66,28 +66,44 @@ describe NitroApi do
     end
 
     describe "#challenge_progress" do
-      it "returns the challenge part of the response" do
+      before do
         params = {
           "showOnlyTrophies" => "false",
           "sessionKey" => @session,
           "method" => "user.getChallengeProgress"
         }
         url = NitroApi::HOST + "?.*method=user.getChallengeProgress.*"
+        mock_rules = {"goal" => "1", "type" => "none", "completed" => "false",
+          "actionTag" => "action"}
+
         mock_data = [{"completionCount"=>"1",
           "description" => "some description",
-          "name" => "Watch 10 Videos"}]
+          "name" => "Watch 10 Videos",
+          "rules" => {"Rule" => mock_rules}}]
 
         mock_json = {"Nitro" => {"challenges" => {"Challenge" => mock_data}}}
         stub_http_request(:get, Regexp.new(url)).
           with(:query => params).
           to_return(:body => mock_json.to_json)
 
-        progress = @nitro.challenge_progress
-        progress.should_not be_empty
-        challenge = progress[0]
-        challenge.should_not be_nil
-        challenge.description.should == "some description"
-        challenge.completed.should == 1
+        response = @nitro.challenge_progress
+        @challenge = response[0]
+      end
+
+      it "returns the challenge part of the response" do
+        @challenge.should_not be_nil
+        @challenge.description.should == "some description"
+        @challenge.completed.should == 1
+      end
+
+      it "has rules in the challenge" do
+        @challenge.rules.should_not be_empty
+        @challenge.rules.size.should == 1
+        rule = @challenge.rules.first
+        rule.type.should == :none
+        rule.completed.should be_false
+        rule.action.should == "action"
+        rule.goal.should == 1
       end
     end
 

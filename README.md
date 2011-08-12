@@ -46,6 +46,9 @@ gem 'nitroapi'
 
 Change Log
 ----------
+0.0.6
+* add rules descriptions in challenge_progress call
+
 0.0.5
 
 #### Bug fixes:
