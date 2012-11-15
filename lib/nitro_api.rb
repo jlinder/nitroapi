@@ -5,8 +5,6 @@ require 'nitro_api/challenge'
 require 'nitro_api/rule'
 
 module NitroApi
-  HOST = "http://sandbox.bunchball.net/nitro/"
-  ACCEPT = "json?"
 
   class NitroError < StandardError
     attr_accessor :code
@@ -17,13 +15,20 @@ module NitroApi
   end
 
   class NitroApi
-    attr_accessor :session
+    attr_accessor :protocol, :host, :accepts, :session
 
+    # Initialize an instance
+    # user_id - The id for the user in the nitro system
+    # api_key - The API key for your Bunchball account
+    # secret - The secret for your Bunchball account
     def initialize (user_id, api_key, secret)
-      # Required Parameters
       @secret = secret
       @api_key = api_key
       @user = user_id
+
+      self.protocol = 'https'
+      self.host = 'sandbox.bunchball.net'
+      self.accepts = 'json'
     end
 
     #  Method for constructing a signature
@@ -34,6 +39,7 @@ module NitroApi
       return Digest::MD5.hexdigest(to_digest)
     end
 
+    # Login the user to the nitro system
     def login
       params = {
         :sig => sign,
@@ -46,6 +52,7 @@ module NitroApi
       @session = response["Login"]["sessionKey"]
     end
 
+    # Log actions to the nitro system
     def log_action(actions, opts={})
       value = opts.delete(:value)
       user_id = opts.delete(:other_user)
@@ -140,6 +147,38 @@ module NitroApi
       make_call(params)
     end
 
+    # Get the list of point leaders for the specified options.
+    # opts - The list of options. The keys in the list are the snake_case
+    #        versions names of the parameters to the getPointsLeaders API call
+    #        as defined here:
+    #        https://bunchballnet-main.pbworks.com/w/page/53132408/site_getPointsLeaders
+    def get_points_leaders opts
+      params = {
+          :sessionKey => @session,
+          :method => 'site.getPointsLeaders'
+      }
+
+      opts_list = {
+          'criteria' => 'criteria',
+          'point_category' => 'pointCategory',
+          'return_count' => 'returnCount',
+          'start' => 'start',
+          'duration' => 'duration',
+          'user_ids' => 'userIds',
+          'tags' => 'tags',
+          'tags_operator' => 'tagsOperator',
+          'group_name' => 'groupName',
+          'with_rank' => 'withRank',
+          'with_surrounding_users' => 'withSurroundingUsers',
+          'preferences' => 'preferences'
+      }
+
+      opts.each do |key,value|
+        params[opts_list[key]] = value if opts_list.has_key?(key)
+      end
+      make_call(params)
+    end
+
     private
 
     def valid_response?(obj)
@@ -151,7 +190,7 @@ module NitroApi
     end
 
     def make_call(params)
-      request = HOST + ACCEPT + to_query(params)
+      request = "#{self.protocol}://#{self.host}/nitro/#{self.accepts}?#{to_query(params)}"
       data = Net::HTTP.get(URI.parse(request))
       json = JSON.parse(data)
       response = json["Nitro"]
