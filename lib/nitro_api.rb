@@ -32,8 +32,7 @@ module NitroApi
     end
 
     #  Method for constructing a signature
-    def sign
-      time = Time.now.utc.to_i.to_s
+    def sign(time)
       unencrypted_signature = @api_key + @secret + time + @user.to_s
       to_digest = unencrypted_signature + unencrypted_signature.length.to_s
       return Digest::MD5.hexdigest(to_digest)
@@ -41,9 +40,10 @@ module NitroApi
 
     # Login the user to the nitro system
     def login
+      ts = Time.now.utc.to_i.to_s
       params = {
-        :sig => sign,
-        :ts => Time.now.utc.to_i.to_s,
+        :sig => sign(ts),
+        :ts => ts,
         :apiKey => @api_key,
         :userId => @user,
         :method => 'user.login'
