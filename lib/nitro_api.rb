@@ -179,6 +179,10 @@ module NitroApi
       make_call(params)
     end
 
+    def base_url()
+      "#{self.protocol}://#{self.host}/nitro/#{self.accepts}"
+    end
+
     private
 
     def valid_response?(obj)
@@ -190,7 +194,7 @@ module NitroApi
     end
 
     def make_call(params)
-      request = "#{self.protocol}://#{self.host}/nitro/#{self.accepts}?#{to_query(params)}"
+      request = "#{base_url}?#{to_query(params)}"
       data = Net::HTTP.get(URI.parse(request))
       json = JSON.parse(data)
       response = json["Nitro"]
