@@ -6,22 +6,25 @@ describe NitroApi do
     @api_key = "key"
     @secret = "secret"
     @nitro = NitroApi::NitroApi.new @user, @api_key, @secret
+    @nitro.protocol = 'http'
     @success = {"Nitro" => {"res" => "ok"}}.to_json
     @session = "1"
   end
 
   describe "#sign" do
     it "takes MD5 like in http://wiki.bunchball.com/w/page/12748060/user_login" do
-      to_digest = @api_key + @secret +  Time.now.utc.to_i.to_s + @user.to_s
+      ts = Time.now.utc.to_i.to_s
+      to_digest = @api_key + @secret +  ts + @user.to_s
       to_digest += to_digest.length.to_s
-      @nitro.sign.should  == Digest::MD5.hexdigest(to_digest)
+      @nitro.sign(ts).should  == Digest::MD5.hexdigest(to_digest)
     end
   end
 
   describe "#login" do
     it "should set session id for a successful call" do
       mock_json = {"Nitro" => {"Login" => {"sessionKey" => @session}}}
-      url = NitroApi::HOST + "?.*method=user.login.*"
+      url = @nitro.base_url + "?.*method=user.login.*"
+      p url
       stub_http_request(:get, Regexp.new(url)).
         to_return(:body => mock_json.to_json)
 
@@ -42,7 +45,7 @@ describe NitroApi do
           "sessionKey" => @session,
           "method" => "user.logAction"
         }
-        url = NitroApi::HOST + "?.*method=user.logAction.*"
+        url = @nitro.base_url + "?.*method=user.logAction.*"
         stub_http_request(:get, Regexp.new(url)).
           with(:query => params).
           to_return(:body => @success)
@@ -56,7 +59,7 @@ describe NitroApi do
           "sessionKey" => @session,
           "method" => "user.logAction"
         }
-        url = NitroApi::HOST + "?.*method=user.logAction.*"
+        url = @nitro.base_url + "?.*method=user.logAction.*"
         stub_http_request(:get, Regexp.new(url)).
           with(:query => params).
           to_return(:body => @success)
@@ -72,7 +75,7 @@ describe NitroApi do
           "sessionKey" => @session,
           "method" => "user.getChallengeProgress"
         }
-        url = NitroApi::HOST + "?.*method=user.getChallengeProgress.*"
+        url = @nitro.base_url + "?.*method=user.getChallengeProgress.*"
         mock_rules = {"goal" => "1", "type" => "none", "completed" => "false",
           "actionTag" => "action"}
 
@@ -115,7 +118,7 @@ describe NitroApi do
           "challenge" => "TestChallenge",
           "method" => "user.awardChallenge"
         }
-        url = NitroApi::HOST + "?.*method=user.awardChallenge.*"
+        url = @nitro.base_url + "?.*method=user.awardChallenge.*"
         stub_http_request(:get, Regexp.new(url)).
           with(:query => params).
           to_return(:body => @success)
@@ -142,7 +145,7 @@ describe NitroApi do
           "sessionKey" => @session,
           "method" => "user.getActionHistory"
         }
-        url = NitroApi::HOST + "?.*method=user.getActionHistory.*"
+        url = @nitro.base_url + "?.*method=user.getActionHistory.*"
         stub_http_request(:get, Regexp.new(url)).
           with(:query => params).
           to_return(:body => @mock_json)
@@ -160,7 +163,7 @@ describe NitroApi do
           "method" => "user.getActionHistory",
           "tags" => "action1"
         }
-        url = NitroApi::HOST + "?.*method=user.getActionHistory.*"
+        url = @nitro.base_url + "?.*method=user.getActionHistory.*"
         stub_http_request(:get, Regexp.new(url)).
           with(:query => params).
           to_return(:body => @mock_json)
@@ -175,7 +178,7 @@ describe NitroApi do
           "sessionKey" => @session,
           "method" => "user.joinGroup"
         }
-        url = NitroApi::HOST + "?.*method=user.joinGroup.*"
+        url = @nitro.base_url + "?.*method=user.joinGroup.*"
         stub_http_request(:get, Regexp.new(url)).
           with(:query => params).
           to_return(:body => @success)
