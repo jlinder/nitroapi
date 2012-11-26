@@ -24,12 +24,39 @@ describe NitroApi do
     it "should set session id for a successful call" do
       mock_json = {"Nitro" => {"Login" => {"sessionKey" => @session}}}
       url = @nitro.base_url + "?.*method=user.login.*"
-      p url
       stub_http_request(:get, Regexp.new(url)).
         to_return(:body => mock_json.to_json)
 
       @nitro.login
       @nitro.session.should == @session
+    end
+  end
+
+  describe "#base_url" do
+    before do
+      @user = "user"
+      @api_key = "key"
+      @secret = "secret"
+      @nitro = NitroApi::NitroApi.new @user, @api_key, @secret
+    end
+
+    it "has the correct default URL" do
+      @nitro.base_url.should == 'https://sandbox.bunchball.net/nitro/json'
+    end
+
+    it "correctly uses the configured protocol value" do
+      @nitro.protocol = 'http'
+      @nitro.base_url.should == 'http://sandbox.bunchball.net/nitro/json'
+    end
+
+    it "correctly uses the configured host value" do
+      @nitro.host = 'example.com'
+      @nitro.base_url.should == 'https://example.com/nitro/json'
+    end
+
+    it "correctly uses the configured accepts value" do
+      @nitro.accepts = 'xml'
+      @nitro.base_url.should == 'https://sandbox.bunchball.net/nitro/xml'
     end
   end
 
