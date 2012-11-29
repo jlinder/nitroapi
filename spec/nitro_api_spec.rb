@@ -213,5 +213,164 @@ describe NitroApi do
         @nitro.join_group "group"
       end      
     end
+
+    describe "#get_points_leaders options_hash" do
+      it "gets points leaders" do
+        options = {
+          'return_count' => 20,
+          'duration' => 'ALLTIME',
+          'point_category' => 'points',
+          'criteria' => 'CREDITS'
+        }
+
+        results = { 'Nitro' => {
+          "res"=>"ok",
+          "method"=>"site.getPointsLeaders",
+          "leaders"=> {
+            "Leader"=>[ {
+              "UserPreferences"=>true,
+              "userId"=>"user_id1",
+              "points"=>"860"
+            }, {
+              "UserPreferences"=>true,
+              "userId"=>"user_id2",
+              "points"=>"620"
+            } ]
+          }
+        }}
+
+        # TODO: Figure out why when passing these params into the http request stub
+        #       the mock doesn't work (it errors out).
+        #params = {
+        #    'method' => 'site.getPointsLeaders',
+        #    'sessionKey' => @session,
+        #    'returnCount' => 20,
+        #    'duration' => 'ALLTIME',
+        #    'pointCategory' => 'points',
+        #    'criteria' => 'CREDITS'
+        #}
+
+        url = @nitro.base_url + "?.*method=site.getPointsLeaders.*"
+        stub_http_request(:any, Regexp.new(url)).
+            #with(:query => params).
+            to_return(status: 200, body: results.to_json)
+
+        s = @nitro.get_points_leaders options
+        s['res'].should == results['Nitro']['res']
+        s['method'].should == results['Nitro']['method']
+        s['leaders']['Leader'][0]['userId'].should == results['Nitro']['leaders']['Leader'][0]['userId']
+        s['leaders']['Leader'][0]['points'].should == results['Nitro']['leaders']['Leader'][0]['points']
+        s['leaders']['Leader'][1]['userId'].should == results['Nitro']['leaders']['Leader'][1]['userId']
+        s['leaders']['Leader'][1]['points'].should == results['Nitro']['leaders']['Leader'][1]['points']
+      end
+    end
+  end
+
+
+  context "batch jobs" do
+    describe "#start_batch!" do
+      it "starts a batch successfully" do
+        @nitro.start_batch!
+      end
+
+      it "errors on second call to start_batch!" do
+        @nitro.start_batch!
+        expect {@nitro.start_batch!}.to raise_error(NitroApi::NitroError)
+      end
+    end
+
+    describe "#cancel_batch" do
+      it "cancels a batch successfully" do
+        @nitro.start_batch!
+        @nitro.cancel_batch
+      end
+    end
+
+    describe "#run_batch" do
+      describe "#login" do
+        it "should set session id for a successful batch call" do
+          mock_json = {'Nitro' => {'Login' => {'sessionKey' => @session}, 'method' => 'user.login', 'res' => 'ok'}}
+          url = @nitro.base_url #+ "?.*method=batch.run.*"
+          stub_http_request(:get, Regexp.new(url)).
+              to_return(:body => mock_json.to_json)
+
+          @nitro.start_batch!
+          @nitro.login
+          @nitro.run_batch
+
+          @nitro.session.should == @session
+        end
+      end
+
+      it "should call two methods successfully" do
+        action_name = "action"
+        mock_json = { 'Nitro' =>
+            { 'res' => 'ok',
+              'method' => 'batch.run',
+              'Nitro' => [
+                  {'Login' => {'sessionKey' => @session}, 'method' => 'user.login', 'res' => 'ok'},
+                  {'res' => 'ok', 'method' => 'user.logAction'}
+              ]
+            }
+        }
+        url = @nitro.base_url #+ "?.*method=batch.run.*"
+        stub_http_request(:post, Regexp.new(url)).
+            to_return(:body => mock_json.to_json)
+
+        @nitro.start_batch!
+        @nitro.login
+        @nitro.log_action action_name
+        s = @nitro.run_batch
+
+        @nitro.session.should == @session
+        s['res'].should == mock_json['Nitro']['res']
+        s['method'].should == mock_json['Nitro']['method']
+        s['Nitro'][1]['res'].should == mock_json['Nitro']['Nitro'][1]['res']
+        s['Nitro'][1]['method'].should == mock_json['Nitro']['Nitro'][1]['method']
+      end
+
+      it "should call the same method twice successfully" do
+        action_name = "action"
+        mock_json = { 'Nitro' =>
+                          { 'res' => 'ok',
+                            'method' => 'batch.run',
+                            'Nitro' => [
+                                {'res' => 'ok', 'method' => 'user.logAction'},
+                                {'res' => 'ok', 'method' => 'user.logAction'}
+                            ]
+                          }
+        }
+        url = @nitro.base_url #+ "?.*method=batch.run.*"
+        stub_http_request(:post, Regexp.new(url)).
+            to_return(:body => mock_json.to_json)
+
+        @nitro.session = @session
+        @nitro.start_batch!
+        @nitro.login
+        @nitro.log_action action_name
+        s = @nitro.run_batch
+
+        s['res'].should == mock_json['Nitro']['res']
+        s['method'].should == mock_json['Nitro']['method']
+        s['Nitro'][1]['res'].should == mock_json['Nitro']['Nitro'][1]['res']
+        s['Nitro'][1]['method'].should == mock_json['Nitro']['Nitro'][1]['method']
+      end
+
+      describe "#challenge_progress" do
+        it "should not allow the call in batch mode" do
+          @nitro.start_batch
+          expect {@nitro.challenge_progress }.to raise_error(NitroApi::NitroError)
+        end
+      end
+
+      describe "#action_history" do
+        it "should not allow the call in batch mode" do
+          @nitro.start_batch
+          expect {@nitro.action_history 'action1'}.to raise_error(NitroApi::NitroError)
+        end
+      end
+
+    end
   end
 end
+

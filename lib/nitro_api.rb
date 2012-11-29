@@ -3,6 +3,7 @@ require 'digest/md5'
 require 'net/http'
 require 'nitro_api/challenge'
 require 'nitro_api/rule'
+require 'nitro_api/batch_calls'
 require 'nitro_api/user_calls'
 require 'nitro_api/site_calls'
 
@@ -18,8 +19,9 @@ module NitroApi
 
   class NitroApi
 
-    include UserCalls
+    include BatchCalls
     include SiteCalls
+    include UserCalls
 
     attr_accessor :protocol, :host, :accepts, :session
 
@@ -31,10 +33,43 @@ module NitroApi
       @secret = secret
       @api_key = api_key
       @user = user_id
+      @batch = nil
 
       self.protocol = 'https'
       self.host = 'sandbox.bunchball.net'
       self.accepts = 'json'
+    end
+
+    # Start a batch call to the nitro API. Uses the "batch.run" method defined
+    # here: https://bunchballnet-main.pbworks.com/w/page/53132313/batch_run
+    # returns - false if a batch is already being composed, true otherwise
+    def start_batch
+      if @batch.nil?
+        @batch = []
+        return true
+      end
+
+      return false
+    end
+
+    # Start a batch call to the nitro API. Uses the "batch.run" method defined
+    # here: https://bunchballnet-main.pbworks.com/w/page/53132313/batch_run
+    # If a batch is already being composed, an error will be raised.
+    def start_batch!
+      if not start_batch
+        raise NitroError.new, "A batch is already being composed."
+      end
+    end
+
+    # Run the batch job. Requires that the 'start_batch' method has been called first.
+    def run_batch
+      make_run_batch_call
+    end
+
+    # Cancel the batch job. It clears out the any accumulated calls that have
+    # been made since first calling start_batch
+    def cancel_batch
+      @batch = nil
     end
 
     #  Method for constructing a signature
@@ -93,9 +128,24 @@ module NitroApi
       items.is_a?(Array) ? items : [items]
     end
 
-    def make_call params
-      request = "#{base_url}?#{to_query(params)}"
-      data = Net::HTTP.get(URI.parse(request))
+    def make_call params, method=:get
+      if @batch.nil?
+        return really_make_call params, method
+      else
+        @batch << { params: params, method: method }
+        nil
+      end
+    end
+
+    def really_make_call params, method
+      if :get == method
+        request = "#{base_url}?#{to_query(params)}"
+        data = Net::HTTP.get(URI.parse(request))
+      elsif :post == method
+        data = Net::HTTP.post_form(URI.parse(base_url), params)
+        data = data.body
+      end
+
       json = JSON.parse(data)
       response = json["Nitro"]
       error = response["Error"]

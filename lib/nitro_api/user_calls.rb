@@ -11,7 +11,10 @@ module NitroApi
           :method => 'user.login'
       }
       response = make_call(params)
-      @session = response["Login"]["sessionKey"]
+      if response.is_a?(Hash)
+        @session = response["Login"]["sessionKey"]
+      end
+      response
     end
 
     def make_log_action_call actions, opts={}
@@ -19,15 +22,24 @@ module NitroApi
       user_id = opts.delete(:other_user)
       params = {
           :tags => actions.is_a?(Array) ? actions.join(",") : actions,
-          :sessionKey => @session,
           :method => 'user.logAction'
       }
+
+      # Only include the session key when it is present. This is to make batch
+      # calls work for this method.
+      params[:sessionKey] = @session if @session
+
       params[:value] = value.to_s if value && !value.to_s.empty?
       params[:userId] = user_id if user_id && !user_id.to_s.empty
       make_call(params)
     end
 
     def make_challenge_progress_call opts={}
+      # TODO: add support for the user.getChallengeProgress call to nitroapi
+      if not @batch.nil?
+        raise NitroError.new(10000), "user.getChallengeProgress not supported in batch mode by nitroapi"
+      end
+
       params = {
           :sessionKey => @session,
           :method => 'user.getChallengeProgress'
@@ -77,6 +89,11 @@ module NitroApi
     end
 
     def make_action_history_call actions=[]
+      # TODO: add support for the user.getActionHistory call to nitroapi
+      if not @batch.nil?
+        raise NitroError.new(10000), "user.getActionHistory not supported in batch mode by nitroapi"
+      end
+
       params = {
           :sessionKey => @session,
           :method => 'user.getActionHistory'
