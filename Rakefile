@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require 'bundler'
+require "bundler/gem_tasks"
 begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e
@@ -10,19 +11,6 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 require 'rake'
-
-require 'jeweler'
-Jeweler::Tasks.new do |gem|
-  # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
-  gem.name = "nitroapi"
-  gem.homepage = "http://github.com/Keasinc/nitroapi"
-  gem.license = "MIT"
-  gem.summary = "Api client for Bunchball's Nitro"
-  gem.description = "Api client for Bunchball's Nitro. http://www.bunchball.com/nitro/"
-  gem.authors = ["Gilad Buchman"]
-  # dependencies defined in Gemfile
-end
-Jeweler::RubygemsDotOrgTasks.new
 
 require 'rspec/core'
 require 'rspec/core/rake_task'
