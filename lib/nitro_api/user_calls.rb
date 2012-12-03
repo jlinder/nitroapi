@@ -20,6 +20,7 @@ module NitroApi
     def make_log_action_call actions, opts={}
       value = opts.delete(:value)
       user_id = opts.delete(:other_user)
+      session_key = opts.delete(:session_key)
       params = {
           :tags => actions.is_a?(Array) ? actions.join(",") : actions,
           :method => 'user.logAction'
@@ -27,7 +28,9 @@ module NitroApi
 
       # Only include the session key when it is present. This is to make batch
       # calls work for this method.
-      params[:sessionKey] = @session if @session
+      if session_key or @session
+        params[:sessionKey] = session_key ? session_key : (@session ? @session : nil)
+      end
 
       params[:value] = value.to_s if value && !value.to_s.empty?
       params[:userId] = user_id if user_id && !user_id.to_s.empty

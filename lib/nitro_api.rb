@@ -85,6 +85,11 @@ module NitroApi
     end
 
     # Log actions to the nitro system
+    # @param [String, Array[String]] actions The (list of) action tag(s) to log
+    # @param [Hash] opts The options. They are:
+    #                    :value - the value to send
+    #                    :other_user - the ID of the user to which the action should be applied
+    #                    :session_key - the session key to use for this call
     def log_action actions, opts={}
       make_log_action_call actions, opts
     end

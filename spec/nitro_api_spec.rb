@@ -93,6 +93,22 @@ describe NitroApi do
 
         @nitro.log_action actions
       end
+
+      it "sends one action with specified session key on query string" do
+        action_name = "action"
+        session = '2'
+        params = {"tags" => action_name,
+                  "sessionKey" => session,
+                  "method" => "user.logAction"
+        }
+        opts = {session_key: session}
+        url = @nitro.base_url + "?.*method=user.logAction.*"
+        stub_http_request(:get, Regexp.new(url)).
+            with(:query => params).
+            to_return(:body => @success)
+
+        @nitro.log_action action_name, opts
+      end
     end
 
     describe "#challenge_progress" do
@@ -330,7 +346,8 @@ describe NitroApi do
       end
 
       it "should call the same method twice successfully" do
-        action_name = "action"
+        action_name1 = "action1"
+        action_name2 = "action2"
         mock_json = { 'Nitro' =>
                           { 'res' => 'ok',
                             'method' => 'batch.run',
@@ -346,8 +363,42 @@ describe NitroApi do
 
         @nitro.session = @session
         @nitro.start_batch!
-        @nitro.login
-        @nitro.log_action action_name
+        @nitro.log_action action_name1
+        @nitro.log_action action_name2
+        s = @nitro.run_batch
+
+        s['res'].should == mock_json['Nitro']['res']
+        s['method'].should == mock_json['Nitro']['method']
+        s['Nitro'][1]['res'].should == mock_json['Nitro']['Nitro'][1]['res']
+        s['Nitro'][1]['method'].should == mock_json['Nitro']['Nitro'][1]['method']
+      end
+
+      it "should call the same method twice but using different session keys successfully" do
+        action_name1 = "action1"
+        action_name2 = "action2"
+        session_key1 = '111'
+        session_key2 = '222'
+
+        mock_json = { 'Nitro' =>
+                          { 'res' => 'ok',
+                            'method' => 'batch.run',
+                            'Nitro' => [
+                                {'res' => 'ok', 'method' => 'user.logAction'},
+                                {'res' => 'ok', 'method' => 'user.logAction'}
+                            ]
+                          }
+        }
+        expected_post_body = "method=batch.run&methodFeed=%5B%22tags%3Daction1%26method%3Duser.logAction%26sessionKey%3D111%22%2C%22tags%3Daction2%26method%3Duser.logAction%26sessionKey%3D222%22%5D"
+
+        url = @nitro.base_url #+ "?.*method=batch.run.*"
+        stub_http_request(:post, Regexp.new(url)).
+            with(body: expected_post_body).
+            to_return(body: mock_json.to_json)
+
+        @nitro.session = @session
+        @nitro.start_batch!
+        @nitro.log_action(action_name1, {session_key: session_key1})
+        @nitro.log_action(action_name2, {session_key: session_key2})
         s = @nitro.run_batch
 
         s['res'].should == mock_json['Nitro']['res']
