@@ -110,6 +110,15 @@ module NitroApi
       make_join_group_call group
     end
 
+    # Get the points for a user.
+    # @param [Hash] opts The list of options. The keys in the list are the
+    #        snake_case versions names of the parameters to the getPointsBalance
+    #        API call as defined here:
+    #        https://bunchballnet-main.pbworks.com/w/page/53132548/user_getPointsBalance
+    def get_points_balance opts={}
+      make_get_points_balance_call opts
+    end
+
     # Get the list of point leaders for the specified options.
     # opts - The list of options. The keys in the list are the snake_case
     #        versions names of the parameters to the getPointsLeaders API call

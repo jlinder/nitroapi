@@ -230,6 +230,53 @@ describe NitroApi do
       end      
     end
 
+    describe "#get_points_balance options_hash" do
+      it "gets the default points" do
+        params = {"sessionKey" => @session,
+                  "method" => "user.getPointsBalance"
+        }
+        url = @nitro.base_url + "?.*method=user.getPointsBalance.*"
+        stub_http_request(:get, Regexp.new(url)).
+            with(:query => params).
+            to_return(:body => @success)
+
+        @nitro.get_points_balance
+      end
+
+      it "passes through all the expected parameters" do
+        options = {
+            'point_category' => 'other_points',
+            'criteria' => 'BALANCE',
+            'start' => '1354636962',
+            'end' => '1354637015',
+            'tags' => 'beans,rice',
+            'user_id' => 'another_user',
+        }
+        url = @nitro.base_url + '?criteria=BALANCE&end=1354637015&method=user.getPointsBalance&pointCategory=other_points&sessionKey=1&start=1354636962&tags=beans,rice&userId=another_user'
+        stub_http_request(:get, url).
+            to_return(:body => @success)
+
+        @nitro.get_points_balance options
+      end
+
+      it "passes through only the expected parameters" do
+        options = {
+            'point_category' => 'other_points',
+            'criteria' => 'BALANCE',
+            'start' => '1354636962',
+            'end' => '1354637015',
+            'tags' => 'beans,rice',
+            'user_id' => 'another_user',
+            'non_param' => 'some_unknown_param'
+        }
+        url = @nitro.base_url + '?criteria=BALANCE&end=1354637015&method=user.getPointsBalance&pointCategory=other_points&sessionKey=1&start=1354636962&tags=beans,rice&userId=another_user'
+        stub_http_request(:get, url).
+            to_return(:body => @success)
+
+        @nitro.get_points_balance options
+      end
+    end
+
     describe "#get_points_leaders options_hash" do
       it "gets points leaders" do
         options = {
