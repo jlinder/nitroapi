@@ -245,12 +245,12 @@ describe NitroApi do
 
       it "passes through all the expected parameters" do
         options = {
-            'point_category' => 'other_points',
-            'criteria' => 'BALANCE',
-            'start' => '1354636962',
-            'end' => '1354637015',
-            'tags' => 'beans,rice',
-            'user_id' => 'another_user',
+            point_category: 'other_points',
+            criteria: 'BALANCE',
+            start: '1354636962',
+            end: '1354637015',
+            tags: 'beans,rice',
+            user_id: 'another_user',
         }
         url = @nitro.base_url + '?criteria=BALANCE&end=1354637015&method=user.getPointsBalance&pointCategory=other_points&sessionKey=1&start=1354636962&tags=beans,rice&userId=another_user'
         stub_http_request(:get, url).
@@ -261,13 +261,13 @@ describe NitroApi do
 
       it "passes through only the expected parameters" do
         options = {
-            'point_category' => 'other_points',
-            'criteria' => 'BALANCE',
-            'start' => '1354636962',
-            'end' => '1354637015',
-            'tags' => 'beans,rice',
-            'user_id' => 'another_user',
-            'non_param' => 'some_unknown_param'
+            point_category: 'other_points',
+            criteria: 'BALANCE',
+            start: '1354636962',
+            end: '1354637015',
+            tags: 'beans,rice',
+            user_id: 'another_user',
+            non_param: 'some_unknown_param'
         }
         url = @nitro.base_url + '?criteria=BALANCE&end=1354637015&method=user.getPointsBalance&pointCategory=other_points&sessionKey=1&start=1354636962&tags=beans,rice&userId=another_user'
         stub_http_request(:get, url).
@@ -280,10 +280,10 @@ describe NitroApi do
     describe "#get_points_leaders options_hash" do
       it "gets points leaders" do
         options = {
-          'return_count' => 20,
-          'duration' => 'ALLTIME',
-          'point_category' => 'points',
-          'criteria' => 'CREDITS'
+          return_count: 20,
+          duration: 'ALLTIME',
+          point_category: 'points',
+          criteria: 'CREDITS'
         }
 
         results = { 'Nitro' => {

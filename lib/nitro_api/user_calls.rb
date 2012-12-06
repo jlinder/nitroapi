@@ -129,6 +129,7 @@ module NitroApi
     end
 
     def make_get_points_balance_call opts={}
+      opts = symbolize_keys opts
       params = {
           :method => 'user.getPointsBalance'
       }
@@ -138,12 +139,12 @@ module NitroApi
       params[:sessionKey] = @session if @session
 
       opts_list = {
-          'criteria' => 'criteria',
-          'point_category' => 'pointCategory',
-          'start' => 'start',
-          'end' => 'end',
-          'user_id' => 'userId',
-          'tags' => 'tags',
+          criteria: 'criteria',
+          point_category: 'pointCategory',
+          start: 'start',
+          end: 'end',
+          user_id: 'userId',
+          tags: 'tags',
       }
 
       opts.each do |key,value|

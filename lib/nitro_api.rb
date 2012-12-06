@@ -173,5 +173,13 @@ module NitroApi
     def to_query params
       URI.escape(params.map { |k,v| "#{k.to_s}=#{v.to_s}" }.join("&"))
     end
+
+    def symbolize_keys h
+      result = {}
+      h.keys.each do |key|
+        result[(key.to_sym rescue key) || key] = h[key]
+      end
+      result
+    end
   end
 end
