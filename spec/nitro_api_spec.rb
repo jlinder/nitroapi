@@ -60,6 +60,15 @@ describe NitroApi do
     end
   end
 
+  describe "#base_url_path" do
+    it "correclty users the configured accepts value" do
+      @nitro.base_url_path.should == '/nitro/json'
+
+      @nitro.accepts = 'xml'
+      @nitro.base_url_path.should == '/nitro/xml'
+    end
+  end
+
   context "when authenticated" do
     before do
       @nitro.session = @session
@@ -467,8 +476,35 @@ describe NitroApi do
           expect {@nitro.action_history 'action1'}.to raise_error(NitroApi::NitroError)
         end
       end
-
     end
   end
+
+  context "https connections" do
+    it "makes a single call successfully via https" do
+      @nitro.protocol = 'https'
+      mock_json = {"Nitro" => {"Login" => {"sessionKey" => @session}}}
+      url = @nitro.base_url + "?.*method=user.login.*"
+      stub_http_request(:get, Regexp.new(url)).
+          to_return(:body => mock_json.to_json)
+
+      @nitro.login
+      @nitro.session.should == @session
+    end
+
+    it "makes a batch call successfully via https" do
+      @nitro.protocol = 'https'
+      mock_json = {'Nitro' => {'Login' => {'sessionKey' => @session}, 'method' => 'user.login', 'res' => 'ok'}}
+      url = @nitro.base_url #+ "?.*method=batch.run.*"
+      stub_http_request(:get, Regexp.new(url)).
+          to_return(:body => mock_json.to_json)
+
+      @nitro.start_batch!
+      @nitro.login
+      @nitro.run_batch
+
+      @nitro.session.should == @session
+    end
+  end
+
 end
 

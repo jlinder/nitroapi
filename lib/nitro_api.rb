@@ -129,7 +129,11 @@ module NitroApi
     end
 
     def base_url
-      "#{self.protocol}://#{self.host}/nitro/#{self.accepts}"
+      "#{self.protocol}://#{self.host}#{base_url_path}"
+    end
+
+    def base_url_path
+      "/nitro/#{self.accepts}"
     end
 
     private
@@ -152,13 +156,34 @@ module NitroApi
     end
 
     def really_make_call params, method
-      if :get == method
-        request = "#{base_url}?#{to_query(params)}"
-        data = Net::HTTP.get(URI.parse(request))
-      elsif :post == method
-        data = Net::HTTP.post_form(URI.parse(base_url), params)
-        data = data.body
+      data = nil
+      if :http == protocol or 'http' == protocol
+        if :get == method
+          request = "#{base_url}?#{to_query(params)}"
+          data = Net::HTTP.get(URI.parse(request))
+        elsif :post == method
+          data = Net::HTTP.post_form(URI.parse(base_url), params)
+          data = data.body
+        end
+      elsif :https == protocol or 'https' == protocol
+        http = Net::HTTP.new(host, 443)
+        http.use_ssl = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+        if :get == method
+          request = "#{base_url_path}?#{to_query(params)}"
+          data = http.request(Net::HTTP::Get.new(request))
+          data = data.body
+        elsif :post == method
+          request = Net::HTTP::Post.new(base_url_path)
+          request.set_form_data(params)
+          data = http.request request
+          data = data.body
+        end
+      else
+        raise NitroError.new(1), "Unknown protocl: #{protocol.to_s}"
       end
+
 
       json = JSON.parse(data)
       response = json["Nitro"]
