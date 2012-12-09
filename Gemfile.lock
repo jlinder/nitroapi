@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    nitroapi (0.0.8)
+    nitroapi (0.0.9)
       activesupport
       json
 
